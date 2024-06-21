@@ -2,15 +2,10 @@ import std/strformat
 import std/os
 import model/repo
 
-let source_dir = "/home/locuris/code/clix-exCLInce/"
+let source_dir = "/Users/louis/code/exCLInce/"
 
 echo fmt"source dir: {source_dir}"
 
-for match in walkDir source_dir:
-  case match.kind:
-  of pcDir:
-    echo fmt"dir: {match.path}"
-  of pcFile:
-    echo fmt"file: {match}"
-  else: echo fmt"link: {match}"
+let loaded_repo = loadRepository source_dir
 
+echo fmt "ldedrpo: {loaded_repo}"
