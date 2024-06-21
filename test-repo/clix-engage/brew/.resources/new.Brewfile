@@ -1,0 +1,11 @@
+brew git
+brew nvim
+brew nim
+brew pyenv
+brew erlang
+brew gleam
+brew nvm
+brew perl
+brew ruby
+brew zig
+brew luarocks
