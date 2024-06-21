@@ -5,9 +5,9 @@ author        = "louis-kldzj"
 description   = "Because you should only need one CLI"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["exCLInce"]
+bin           = @["clix"]
 
 
 # Dependencies
 
-requires "nim >= 2.0.6"
+requires "nim >= 2.0.4"
