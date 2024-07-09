@@ -1,8 +1,12 @@
+#NOTE: This is a functional approach. I'm going to implement a more oo approach to see how it reads / feels
+
 import std/strformat
-import std/os
+import std/dirs
+import std/paths
+import std/files
 
 type
-  RepoObjectType = enum
+  RepoItemType = enum
     RootDirectory
     CommandDirectory,
     CommandScript,
@@ -12,72 +16,70 @@ type
     ResourceFile
 
 type
-  RepoObject = object
-    obj_type: RepoObjectType
-    path: string
-    children: seq[RepoObject]
+  BaseItem = object
+    objType: RepoItemType
+    path: Path
+  RepoItem = object
+    base: BaseItem
+    children: seq[RepoItem]
+
+
+proc constructItem(objType: RepoItemType, path: Path, children: seq[
+    RepoItem]): RepoItem =
+  result = RepoItem(
+    base: BaseItem(
+      objType: objType,
+      path: path
+    ),
+    children: children
+  )
+
+
+proc toBase(path: Path): BaseItem =
+  var itemType: RepoItemType
+  if fileExists path:
+    case path.parentDir().lastPathPart().string:
+      of ".config":
+        itemType = ConfigFile
+      of ".resources":
+        itemType = ResourceFile
+      else:
+        itemType = CommandScript
+  else:
+    case path.lastPathPart().string:
+      of ".config":
+        itemType = ConfigDirectory
+      of ".resources":
+        itemType = ResourceDirectory
+      else:
+        itemType = CommandDirectory
+  result = BaseItem(objType: itemType, path: path)
+
+
+## Repository
+
 
 type
   Repository = object
-    root: RepoObject
+    root: RepoItem
 
-proc readDirectoryLevel(path: string, dir_type: RepoObjectType): seq[RepoObject]
 
-proc loadRepository*(path: string): Repository =
-  let root = RepoObject(
-    obj_type: RootDirectory,
-    path: path,
-    children: path.readDirectoryLevel CommandDirectory
-  )
+proc createRepoItem(path: Path): RepoItem =
+  let baseItem = path.toBase()
+  var children: seq[RepoItem] = @[]
+  for child in walkDir path:
+    children.add(createRepoItem(child.path))
+
+  result = RepoItem(base: baseItem, children: children)
+
+
+proc loadRepository*(path: string, relative: bool = true): Repository =
+  let rootPath: Path = Path(path).absolutePath()
+  var children: seq[RepoItem] = @[]
+
+  for child in walkDir rootPath:
+    children.add(createRepoItem(child.path))
+
+  let root: RepoItem = constructItem(RepoItemType.RootDirectory, rootPath, children)
 
   result = Repository(root: root)
-
-
-proc createFileObject(path: string, parentType: RepoObjectType): RepoObject =
-  var file_type: RepoObjectType
-  case parentType:
-    of ConfigDirectory:
-      file_type = ConfigFile
-    of ResourceDirectory:
-      file_type = ResourceFile
-    else:
-      file_type = CommandScript
-
-  result = RepoObject(
-    obj_type: file_type,
-    path: path,
-    children: @[]
-  )
-
-
-proc createDirectoryObject(path: string): RepoObject =
-  var dir_type: RepoObjectType
-  case path:
-    of ".config":
-      dir_type = ConfigDirectory
-    of ".resources":
-      dir_type = ResourceDirectory
-    else:
-      dir_type = CommandDirectory
-
-  result = RepoObject(
-    obj_type: dir_type,
-    path: path,
-    children: path.readDirectoryLevel dir_type
-  )
-
-proc readDirectoryLevel(path: string, dir_type: RepoObjectType): seq[RepoObject] =
-  var children: seq[RepoObject] = @[]
-  for obj in walkDir path:
-    case obj.kind:
-      of pcDir:
-        children.add(createDirectoryObject obj.path)
-      of pcFile:
-        children.add(obj.path.createFileObject dir_type)
-
-      else:
-        echo fmt"unhandled directory object type: {obj.path}"
-
-  result = children
-
-

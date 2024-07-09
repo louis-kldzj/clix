@@ -2,7 +2,7 @@ import std/strformat
 import std/os
 import model/repo
 
-let source_dir = "/Users/louis/code/exCLInce/"
+let source_dir = "test-repo/clix-engage/"
 
 echo fmt"source dir: {source_dir}"
 
