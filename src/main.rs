@@ -1,3 +1,6 @@
+mod repo;
+
 fn main() {
-    println!("Hello, world!");
+    let repo = repo::load_directory();
+    println!("wow! {repo:?}");
 }
