@@ -124,11 +124,7 @@ impl ClixRepo {
                         .subcommand_name()
                         .expect("could not get subcommand name")
                 {
-                    return Some(ClixFile{
-                        file: DirEntry {
-                            
-                        }
-                    });
+                    return Some(ClixFile {});
                 }
             }
         };
