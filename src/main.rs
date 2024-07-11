@@ -1,6 +1,13 @@
-mod repo;
+mod model;
 
 fn main() {
-    let repo = repo::load_directory();
+    let repo = model::load_directory();
     println!("wow! {repo:?}");
+    println!();
+
+    let command = repo.clap();
+    println!("clap! {command}");
+
+    let matches = command.get_matches();
+    println!("match! {matches:?}");
 }
