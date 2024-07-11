@@ -1,6 +1,7 @@
 use std::fs::*;
 use std::path::*;
 
+use clap::ArgMatches;
 use clap::Command;
 
 pub enum ClixObject {
@@ -103,6 +104,35 @@ impl ClixRepo {
 
     pub fn clap(&self) -> Command {
         create_command(&self.root)
+    }
+
+    pub fn clap_file(&self) -> ClixFile {
+        let matches = self.clap().get_matches();
+    }
+
+    fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFile> {
+        if let Some((cmd_name, next_match)) = arg_match.subcommand() {
+            for dir in &clix_dir.sub_dirs {
+                if dir.get_command_name() == cmd_name {
+                    return Self::walk_repo(next_match, dir);
+                }
+            }
+        } else {
+            for file in &clix_dir.files {
+                if file.get_command_name()
+                    == arg_match
+                        .subcommand_name()
+                        .expect("could not get subcommand name")
+                {
+                    return Some(ClixFile{
+                        file: DirEntry {
+                            
+                        }
+                    });
+                }
+            }
+        };
+        None
     }
 }
 
