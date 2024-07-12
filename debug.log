@@ -1,0 +1,40 @@
+2024-07-12 13:00:58.587 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:00:58.587 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:00:58.587 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:04:07.043 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:04:07.044 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:04:07.044 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:04:12.245 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:04:12.245 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:04:12.245 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:04:12.246 WARN clix - we don't have a file!
+2024-07-12 13:08:29.658 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:08:29.658 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:08:29.658 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:08:29.658 DEBUG clix::model - clapping file
+2024-07-12 13:08:29.659 DEBUG clix::model - walking repo...ArgMatches { valid_args: ["help"], valid_subcommands: ["brew", "git", "help"], args: FlatMap { keys: [], values: [] }, subcommand: Some(SubCommand { name: "git", matches: ArgMatches { valid_args: ["help"], valid_subcommands: ["push-new", "help"], args: FlatMap { keys: [], values: [] }, subcommand: Some(SubCommand { name: "push-new", matches: ArgMatches { valid_args: ["help"], valid_subcommands: [], args: FlatMap { keys: [], values: [] }, subcommand: None } }) } }) }
+2024-07-12 13:08:29.659 DEBUG clix::model - got subcommand git
+2024-07-12 13:08:29.659 DEBUG clix::model - walking repo...ArgMatches { valid_args: ["help"], valid_subcommands: ["push-new", "help"], args: FlatMap { keys: [], values: [] }, subcommand: Some(SubCommand { name: "push-new", matches: ArgMatches { valid_args: ["help"], valid_subcommands: [], args: FlatMap { keys: [], values: [] }, subcommand: None } }) }
+2024-07-12 13:08:29.659 DEBUG clix::model - got subcommand push-new
+2024-07-12 13:08:29.659 WARN clix - we don't have a file!
+2024-07-12 13:11:02.613 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:11:02.613 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:11:02.613 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:11:02.614 DEBUG clix::model - clapping file
+2024-07-12 13:11:02.614 DEBUG clix::model - walking repo for git in engage
+2024-07-12 13:11:02.614 DEBUG clix::model - got subcommand git
+2024-07-12 13:11:02.614 DEBUG clix::model - walking repo for push-new in git
+2024-07-12 13:11:02.614 DEBUG clix::model - got subcommand push-new
+2024-07-12 13:11:02.614 WARN clix - we don't have a file!
+2024-07-12 13:11:39.098 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:11:39.098 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:11:39.098 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:11:39.098 DEBUG clix::model - clapping file
+2024-07-12 13:11:39.098 DEBUG clix::model - walking repo for git in engage
+2024-07-12 13:11:39.098 DEBUG clix::model - got subcommand git
+2024-07-12 13:11:39.098 DEBUG clix::model - walking repo for push-new in git
+2024-07-12 13:11:39.098 DEBUG clix::model - got subcommand push-new
+2024-07-12 13:11:39.098 DEBUG clix::model - should be on last command...
+2024-07-12 13:11:39.098 DEBUG clix::model - checking file: ClixFile { file: DirEntry("/home/locuris/code/clix/test-repo/engage/git/push-new.sh") }
+2024-07-12 13:11:39.098 DEBUG clix::model - checking command file: push-new
+2024-07-12 13:11:39.098 INFO clix - we have a file! ClixFile { file: DirEntry("/home/locuris/code/clix/test-repo/engage/git/push-new.sh") }

@@ -3,6 +3,7 @@ use std::path::*;
 
 use clap::ArgMatches;
 use clap::Command;
+use log::debug;
 
 pub enum ClixObject {
     CommandDirectory,
@@ -35,17 +36,17 @@ impl ClixFile {
             .read_dir()
             .expect("could not read parent directory")
         {
-            if let Ok(ele) = ele {
-                if ele
-                    .path()
+            let Ok(ele) = ele else { continue };
+            let ele_file_stem = String::from(
+                ele.path()
                     .file_stem()
                     .expect("could not read file stem")
                     .to_str()
-                    .expect("could not convert to string")
-                    == self.get_command_name()
-                {
-                    return Some(ClixFile { file: ele });
-                }
+                    .expect("could not convert to string"),
+            );
+            debug!("checking command file: {ele_file_stem}");
+            if ele_file_stem == self.get_command_name() {
+                return Some(ClixFile { file: ele });
             }
         }
         None
@@ -72,7 +73,7 @@ impl ClixDirectory {
 }
 
 fn read_path_buf(path: PathBuf) -> ClixDirectory {
-    println!("reading path: {path:?}");
+    debug!("reading path: {path:?}");
     let mut files: Vec<ClixFile> = Vec::new();
     let mut directories: Vec<ClixDirectory> = Vec::new();
 
@@ -100,7 +101,7 @@ fn read_path_buf(path: PathBuf) -> ClixDirectory {
 }
 
 pub fn load_directory() -> ClixRepo {
-    const DIR: &str = "C://Users/louis/code/clix/test-repo/engage";
+    const DIR: &str = "/home/locuris/code/clix/test-repo/engage";
     let path = PathBuf::from(DIR);
     let root = read_path_buf(path);
     ClixRepo::new(root)
@@ -132,28 +133,35 @@ impl ClixRepo {
     }
 
     pub fn clap_file(&self) -> Option<ClixFile> {
+        debug!("clapping file");
         let matches = self.clap().get_matches();
         Self::walk_repo(&matches, &self.root)
     }
 
     fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFile> {
+        let command_name = arg_match.subcommand_name().unwrap();
+        let dir_name = clix_dir.get_command_name();
+        debug!("walking repo for {command_name} in {dir_name}");
         if let Some((cmd_name, next_match)) = arg_match.subcommand() {
+            debug!("got subcommand {cmd_name}");
             for dir in &clix_dir.sub_dirs {
                 if dir.get_command_name() == cmd_name {
                     return Self::walk_repo(next_match, dir);
                 }
             }
-        } else {
-            for file in &clix_dir.files {
-                if file.get_command_name()
-                    == arg_match
-                        .subcommand_name()
-                        .expect("could not get subcommand name")
-                {
-                    return file.get_file();
-                }
+        }
+        debug!("should be on last command...");
+        for file in &clix_dir.files {
+            debug!("checking file: {file:?}");
+            if file.get_command_name()
+                == arg_match
+                    .subcommand_name()
+                    .expect("could not get subcommand name")
+            {
+                return file.get_file();
             }
-        };
+        }
+
         None
     }
 }
