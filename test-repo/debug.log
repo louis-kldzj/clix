@@ -1,0 +1,26 @@
+2024-07-12 13:41:10.542 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:41:10.543 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/test"
+2024-07-12 13:41:10.543 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:41:10.543 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:41:10.543 DEBUG clix::model - clapping file
+2024-07-12 13:41:10.543 DEBUG clix::model - walking repo for test in engage
+2024-07-12 13:41:10.543 DEBUG clix::model - got subcommand test
+2024-07-12 13:41:10.543 DEBUG clix::model - walking repo for bosh in test
+2024-07-12 13:41:10.543 DEBUG clix::model - got subcommand bosh
+2024-07-12 13:41:10.543 DEBUG clix::model - should be on last command...
+2024-07-12 13:41:10.543 DEBUG clix::model - checking file: ClixFile { file: DirEntry("/home/locuris/code/clix/test-repo/engage/test/bosh.sh") }
+2024-07-12 13:41:10.543 DEBUG clix::model - checking command file: bosh
+2024-07-12 13:41:10.543 INFO clix - we have a file! ClixFile { file: DirEntry("/home/locuris/code/clix/test-repo/engage/test/bosh.sh") }
+2024-07-12 13:41:30.325 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage"
+2024-07-12 13:41:30.326 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/test"
+2024-07-12 13:41:30.326 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/brew"
+2024-07-12 13:41:30.326 DEBUG clix::model - reading path: "/home/locuris/code/clix/test-repo/engage/git"
+2024-07-12 13:41:30.326 DEBUG clix::model - clapping file
+2024-07-12 13:41:30.326 DEBUG clix::model - walking repo for test in engage
+2024-07-12 13:41:30.326 DEBUG clix::model - got subcommand test
+2024-07-12 13:41:30.326 DEBUG clix::model - walking repo for bosh in test
+2024-07-12 13:41:30.326 DEBUG clix::model - got subcommand bosh
+2024-07-12 13:41:30.326 DEBUG clix::model - should be on last command...
+2024-07-12 13:41:30.326 DEBUG clix::model - checking file: ClixFile { file: DirEntry("/home/locuris/code/clix/test-repo/engage/test/bosh.sh") }
+2024-07-12 13:41:30.326 DEBUG clix::model - checking command file: bosh
+2024-07-12 13:41:30.326 INFO clix - we have a file! ClixFile { file: DirEntry("/home/locuris/code/clix/test-repo/engage/test/bosh.sh") }

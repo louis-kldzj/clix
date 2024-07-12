@@ -166,6 +166,7 @@ impl ClixRepo {
     }
 }
 
+// Helper Method
 fn get_last_path_component_as_string(path: PathBuf) -> String {
     String::from(
         path.components()

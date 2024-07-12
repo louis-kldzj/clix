@@ -1,3 +1,4 @@
+use execution::execute_command;
 use log::{info, warn, LevelFilter};
 use log4rs::{
     append::file::FileAppender,
@@ -6,6 +7,7 @@ use log4rs::{
     Config,
 };
 
+mod execution;
 mod model;
 
 fn main() {
@@ -13,7 +15,10 @@ fn main() {
     let repo = model::load_directory();
     let file = repo.clap_file();
     match file {
-        Some(clix_file) => info!("we have a file! {clix_file:?}"),
+        Some(clix_file) => {
+            info!("we have a file! {clix_file:?}");
+            execute_command(clix_file.file);
+        }
         None => warn!("we don't have a file!"),
     }
 }
