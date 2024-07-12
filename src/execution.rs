@@ -1,10 +1,10 @@
-use std::fs::DirEntry;
 use std::process::Command;
+use std::{fs::DirEntry, path::PathBuf};
 
 use log::{error, info, warn};
 
-pub fn execute_command(file: DirEntry) {
-    if let Some(extension) = file.path().extension() {
+pub fn execute_command(file: PathBuf) {
+    if let Some(extension) = file.extension() {
         match extension.to_str().expect("could not convert OSstr to str") {
             "sh" => execute_bash_script(file),
             _ => warn!("unhandled file type: {file:?}"),
@@ -12,10 +12,10 @@ pub fn execute_command(file: DirEntry) {
     }
 }
 
-fn execute_bash_script(file: DirEntry) {
+fn execute_bash_script(file: PathBuf) {
     let mut command = Command::new("bash");
 
-    command.arg(file.path());
+    command.arg(file);
 
     match command.output() {
         Ok(output) => {

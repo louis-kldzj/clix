@@ -6,9 +6,6 @@ use clap::ArgMatches;
 use clap::Command;
 use log::debug;
 
-use crate::config::get_command_configuration;
-use crate::config::CommandConfiguration;
-
 // PathBuf wrapper with helper functions
 #[derive(Debug, Clone)]
 pub struct ClixPath {
@@ -36,6 +33,24 @@ impl ClixPath {
         }))
     }
 
+    pub fn get_neighbours_or_contents(&self) -> Vec<PathBuf> {
+        if self.is_file() {
+            self.path
+                .parent()
+                .expect("could not get parent of file path")
+                .read_dir()
+                .expect("could not read parent dir of file path")
+                .map(|neighbour| neighbour.expect("could not get dir entry").path())
+                .collect()
+        } else {
+            self.path
+                .read_dir()
+                .expect("could not read directory")
+                .map(|content| content.expect("could not get dir entry").path())
+                .collect()
+        }
+    }
+
     fn convert_os_string(os_str: &OsStr) -> &str {
         os_str
             .to_str()
@@ -43,7 +58,7 @@ impl ClixPath {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ClixFile {
     pub(super) file: ClixPath,
 }
@@ -164,7 +179,7 @@ impl ClixRepo {
                     .subcommand_name()
                     .expect("could not get subcommand name")
             {
-                return file.get_file();
+                return Some(file.clone());
             }
         }
 
