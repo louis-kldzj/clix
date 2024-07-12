@@ -1,5 +1,4 @@
 use std::ffi::OsStr;
-use std::fs::*;
 use std::path::*;
 
 use clap::ArgMatches;
@@ -61,21 +60,35 @@ impl ClixPath {
 #[derive(Debug, Clone)]
 pub struct ClixFile {
     pub(super) file: ClixPath,
+    config_file: Option<ClixPath>,
 }
 
 impl ClixFile {
     pub fn new(file: ClixPath) -> Self {
-        ClixFile { file }
-    }
-
-    pub fn from_dir_entry(dir_entry: DirEntry) -> Self {
-        ClixFile {
-            file: ClixPath::new(dir_entry.path()),
-        }
+        let mut clix = ClixFile {
+            file,
+            config_file: None,
+        };
+        clix.try_set_config_file();
+        clix
     }
 
     pub fn get_file_name(&self) -> String {
         self.file.name()
+    }
+
+    fn try_set_config_file(&mut self) {
+        let file_name = self.file.name();
+        for neighbour in self.file.get_neighbours_or_contents() {
+            if !neighbour.is_dir() {
+                let path = ClixPath::new(neighbour);
+                let name = path.name();
+                if name != file_name && name.contains(file_name.as_str()) {
+                    self.config_file = Some(path);
+                    return;
+                }
+            }
+        }
     }
 }
 
@@ -92,30 +105,22 @@ impl ClixDirectory {
     }
 }
 
-fn read_path_buf(path: PathBuf) -> ClixDirectory {
+fn read_directory(path: ClixPath) -> ClixDirectory {
     debug!("reading path: {path:?}");
     let mut files: Vec<ClixFile> = Vec::new();
     let mut directories: Vec<ClixDirectory> = Vec::new();
 
-    path.read_dir()
-        .expect("cannot read directory")
-        .for_each(|entry| {
-            if let Ok(entry) = entry {
-                if let Ok(file_type) = entry.file_type() {
-                    let last_path_cmp = get_last_path_component_as_string(entry.path());
-                    if !last_path_cmp.starts_with('.') {
-                        if file_type.is_dir() {
-                            directories.push(read_path_buf(entry.path()));
-                        } else {
-                            files.push(ClixFile::from_dir_entry(entry));
-                        }
-                    }
-                }
-            }
-        });
+    path.get_neighbours_or_contents().iter().for_each(|entry| {
+        let sub_path = ClixPath::new(entry.clone());
+        if sub_path.is_file() {
+            files.push(ClixFile::new(sub_path));
+        } else {
+            directories.push(read_directory(sub_path))
+        }
+    });
 
     ClixDirectory {
-        dir: ClixPath::new(path),
+        dir: path,
         files,
         sub_dirs: directories,
     }
@@ -124,7 +129,7 @@ fn read_path_buf(path: PathBuf) -> ClixDirectory {
 pub fn load_directory() -> ClixRepo {
     const DIR: &str = "/home/locuris/code/clix/test-repo/engage";
     let path = PathBuf::from(DIR);
-    let root = read_path_buf(path);
+    let root = read_directory(ClixPath::new(path));
     ClixRepo::new(root)
 }
 
@@ -185,16 +190,4 @@ impl ClixRepo {
 
         None
     }
-}
-
-// Helper Method
-fn get_last_path_component_as_string(path: PathBuf) -> String {
-    String::from(
-        path.components()
-            .last()
-            .unwrap()
-            .as_os_str()
-            .to_str()
-            .unwrap(),
-    )
 }
