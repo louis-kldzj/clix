@@ -23,22 +23,6 @@ fn main() {
     }
 }
 
-mod test {
-    use super::*;
-
-    fn main() {
-        let repo = model::load_directory();
-        println!("wow! {repo:?}");
-        println!();
-
-        let command = repo.clap();
-        println!("clap! {command}");
-
-        let matches = command.get_matches();
-        println!("match! {matches:?}");
-    }
-}
-
 fn configure_logging() {
     let log_file_appender = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(
