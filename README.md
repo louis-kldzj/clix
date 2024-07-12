@@ -1,6 +1,6 @@
-### exCLInce / exCLInt / clix
+### clix
 
-Configurable extandable CLI tool
+Configurable extendable CLI tool
 
 #### What does it do?
 
@@ -11,3 +11,10 @@ Configurable extandable CLI tool
   - config folders are `.config` - this could include dependency information for the script or metadata (e.g. renaming commands)
   - resource folders are `.resources` - these will include data files and other resources / assets required for scripts in the parent directory
 - That's it!
+
+#### TODO
+
+- Command configuration - allow defining of more complex commands with options and arguments
+- Different command file types - currently only supports bash
+- AppConfig - allow the setting of script repository - currently hard-coded to my local test repository
+- Remote repository - allow for the setting of a remote git repository
