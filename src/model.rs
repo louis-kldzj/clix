@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::fs::*;
 use std::path::*;
 
@@ -8,91 +9,71 @@ use log::debug;
 use crate::config::get_command_configuration;
 use crate::config::CommandConfiguration;
 
-pub enum ClixObject {
-    CommandDirectory,
-    CommandFile,
+// PathBuf wrapper with helper functions
+#[derive(Debug, Clone)]
+pub struct ClixPath {
+    path: PathBuf,
+}
+
+impl ClixPath {
+    pub fn new(path: PathBuf) -> Self {
+        ClixPath { path }
+    }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
+
+    pub fn is_file(&self) -> bool {
+        self.path.is_file()
+    }
+
+    pub fn name(&self) -> String {
+        String::from(Self::convert_os_string(if self.is_file() {
+            self.path.file_stem().expect("could not get file stem")
+        } else {
+            self.path().file_name().expect("could not get dir name")
+        }))
+    }
+
+    fn convert_os_string(os_str: &OsStr) -> &str {
+        os_str
+            .to_str()
+            .expect("could not convert os string {os_str:?}")
+    }
 }
 
 #[derive(Debug)]
 pub struct ClixFile {
-    pub(super) file: DirEntry,
-    config_file: Option<DirEntry>,
+    pub(super) file: ClixPath,
 }
 
 impl ClixFile {
-    pub fn new(file: DirEntry) -> Self {
+    pub fn new(file: ClixPath) -> Self {
+        ClixFile { file }
+    }
+
+    pub fn from_dir_entry(dir_entry: DirEntry) -> Self {
         ClixFile {
-            file,
-            config_file: None,
+            file: ClixPath::new(dir_entry.path()),
         }
     }
 
-    pub fn new_with_config(file: DirEntry, config_file: Option<DirEntry>) -> Self {
-        ClixFile { file, config_file }
-    }
-
-    pub fn get_command_name(&self) -> String {
-        String::from(
-            self.file
-                .path()
-                .file_stem()
-                .expect("could not read file stem")
-                .to_str()
-                .expect("could not convert file stem to str"),
-        )
-    }
-
-    pub fn get_config_file(&self) -> Option<CommandConfiguration> {
-        let config = &self.config_file;
-        config.map(|file| get_command_configuration(&file).expect("could not get config file"))
-    }
-
-    pub fn get_file(&self) -> Option<Self> {
-        let mut file: Option<DirEntry> = None;
-        let mut config_file: Option<DirEntry> = None;
-        for ele in self
-            .file
-            .path()
-            .parent()
-            .expect("could not get parent path of file")
-            .read_dir()
-            .expect("could not read parent directory")
-        {
-            let Ok(ele) = ele else { continue };
-            let ele_file_stem = String::from(
-                ele.path()
-                    .file_stem()
-                    .expect("could not read file stem")
-                    .to_str()
-                    .expect("could not convert to string"),
-            );
-            debug!("checking command file: {ele_file_stem}");
-            if ele_file_stem == self.get_command_name() {
-                file = Some(ele);
-            } else if ele_file_stem.contains(self.get_command_name().as_str()) {
-                config_file = Some(ele);
-            }
-        }
-        file.map(|file| ClixFile::new_with_config(file, config_file))
+    pub fn get_file_name(&self) -> String {
+        self.file.name()
     }
 }
 
 #[derive(Debug)]
 pub struct ClixDirectory {
-    pub(super) dir: PathBuf,
+    pub(super) dir: ClixPath,
     pub(super) files: Vec<ClixFile>,
     pub(super) sub_dirs: Vec<ClixDirectory>,
 }
 
 impl ClixDirectory {
     pub fn get_command_name(&self) -> String {
-        String::from(
-            self.dir
-                .file_name()
-                .expect("could not read dir name")
-                .to_str()
-                .expect("could not convert dir name to str"),
-        )
+        self.dir.name()
     }
 }
 
@@ -111,7 +92,7 @@ fn read_path_buf(path: PathBuf) -> ClixDirectory {
                         if file_type.is_dir() {
                             directories.push(read_path_buf(entry.path()));
                         } else {
-                            files.push(ClixFile::new(entry));
+                            files.push(ClixFile::from_dir_entry(entry));
                         }
                     }
                 }
@@ -119,7 +100,7 @@ fn read_path_buf(path: PathBuf) -> ClixDirectory {
         });
 
     ClixDirectory {
-        dir: path,
+        dir: ClixPath::new(path),
         files,
         sub_dirs: directories,
     }
@@ -135,7 +116,7 @@ pub fn load_directory() -> ClixRepo {
 fn create_command(dir: &ClixDirectory) -> Command {
     let mut command = Command::new(dir.get_command_name());
     for file in &dir.files {
-        command = command.subcommand(Command::new(file.get_command_name()));
+        command = command.subcommand(Command::new(file.get_file_name()));
     }
     for sub_dir in &dir.sub_dirs {
         command = command.subcommand(create_command(sub_dir));
@@ -178,7 +159,7 @@ impl ClixRepo {
         debug!("should be on last command...");
         for file in &clix_dir.files {
             debug!("checking file: {file:?}");
-            if file.get_command_name()
+            if file.get_file_name()
                 == arg_match
                     .subcommand_name()
                     .expect("could not get subcommand name")
