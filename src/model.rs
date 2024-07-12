@@ -5,6 +5,9 @@ use clap::ArgMatches;
 use clap::Command;
 use log::debug;
 
+use crate::config::get_command_configuration;
+use crate::config::CommandConfiguration;
+
 pub enum ClixObject {
     CommandDirectory,
     CommandFile,
@@ -13,9 +16,21 @@ pub enum ClixObject {
 #[derive(Debug)]
 pub struct ClixFile {
     pub(super) file: DirEntry,
+    config_file: Option<DirEntry>,
 }
 
 impl ClixFile {
+    pub fn new(file: DirEntry) -> Self {
+        ClixFile {
+            file,
+            config_file: None,
+        }
+    }
+
+    pub fn new_with_config(file: DirEntry, config_file: Option<DirEntry>) -> Self {
+        ClixFile { file, config_file }
+    }
+
     pub fn get_command_name(&self) -> String {
         String::from(
             self.file
@@ -27,7 +42,14 @@ impl ClixFile {
         )
     }
 
+    pub fn get_config_file(&self) -> Option<CommandConfiguration> {
+        let config = &self.config_file;
+        config.map(|file| get_command_configuration(&file).expect("could not get config file"))
+    }
+
     pub fn get_file(&self) -> Option<Self> {
+        let mut file: Option<DirEntry> = None;
+        let mut config_file: Option<DirEntry> = None;
         for ele in self
             .file
             .path()
@@ -46,10 +68,12 @@ impl ClixFile {
             );
             debug!("checking command file: {ele_file_stem}");
             if ele_file_stem == self.get_command_name() {
-                return Some(ClixFile { file: ele });
+                file = Some(ele);
+            } else if ele_file_stem.contains(self.get_command_name().as_str()) {
+                config_file = Some(ele);
             }
         }
-        None
+        file.map(|file| ClixFile::new_with_config(file, config_file))
     }
 }
 
@@ -82,12 +106,13 @@ fn read_path_buf(path: PathBuf) -> ClixDirectory {
         .for_each(|entry| {
             if let Ok(entry) = entry {
                 if let Ok(file_type) = entry.file_type() {
-                    if file_type.is_dir() {
-                        if !get_last_path_component_as_string(entry.path()).starts_with('.') {
+                    let last_path_cmp = get_last_path_component_as_string(entry.path());
+                    if !last_path_cmp.starts_with('.') {
+                        if file_type.is_dir() {
                             directories.push(read_path_buf(entry.path()));
+                        } else {
+                            files.push(ClixFile::new(entry));
                         }
-                    } else {
-                        files.push(ClixFile { file: entry });
                     }
                 }
             }

@@ -7,6 +7,7 @@ use log4rs::{
     Config,
 };
 
+mod config;
 mod execution;
 mod model;
 

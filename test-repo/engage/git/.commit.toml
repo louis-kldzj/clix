@@ -1,0 +1,2 @@
+command_name = "commit"
+arguments = ["MESSAGE"]
