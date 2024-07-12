@@ -4,3 +4,4 @@ exCLInce
 # Added by cargo
 
 /target
+debug.log
