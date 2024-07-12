@@ -25,6 +25,31 @@ impl ClixFile {
                 .expect("could not convert file stem to str"),
         )
     }
+
+    pub fn get_file(&self) -> Option<Self> {
+        for ele in self
+            .file
+            .path()
+            .parent()
+            .expect("could not get parent path of file")
+            .read_dir()
+            .expect("could not read parent directory")
+        {
+            if let Ok(ele) = ele {
+                if ele
+                    .path()
+                    .file_stem()
+                    .expect("could not read file stem")
+                    .to_str()
+                    .expect("could not convert to string")
+                    == self.get_command_name()
+                {
+                    return Some(ClixFile { file: ele });
+                }
+            }
+        }
+        None
+    }
 }
 
 #[derive(Debug)]
@@ -75,7 +100,7 @@ fn read_path_buf(path: PathBuf) -> ClixDirectory {
 }
 
 pub fn load_directory() -> ClixRepo {
-    const DIR: &str = "/home/locuris/code/clix/test-repo/engage";
+    const DIR: &str = "C://Users/louis/code/clix/test-repo/engage";
     let path = PathBuf::from(DIR);
     let root = read_path_buf(path);
     ClixRepo::new(root)
@@ -106,8 +131,9 @@ impl ClixRepo {
         create_command(&self.root)
     }
 
-    pub fn clap_file(&self) -> ClixFile {
+    pub fn clap_file(&self) -> Option<ClixFile> {
         let matches = self.clap().get_matches();
+        Self::walk_repo(&matches, &self.root)
     }
 
     fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFile> {
@@ -124,7 +150,7 @@ impl ClixRepo {
                         .subcommand_name()
                         .expect("could not get subcommand name")
                 {
-                    return Some(ClixFile {});
+                    return file.get_file();
                 }
             }
         };
