@@ -1,9 +1,14 @@
 use std::ffi::OsStr;
 use std::path::*;
 
+use clap::Arg;
 use clap::ArgMatches;
 use clap::Command;
 use log::debug;
+use log::info;
+
+use crate::config::get_command_configuration;
+use crate::config::CommandConfiguration;
 
 // PathBuf wrapper with helper functions
 #[derive(Debug, Clone)]
@@ -77,6 +82,15 @@ impl ClixFile {
         self.file.name()
     }
 
+    pub fn get_config(&self) -> Option<CommandConfiguration> {
+        if let Some(config_file) = &self.config_file {
+            if let Ok(config) = get_command_configuration(config_file.path().clone()) {
+                return Some(config);
+            }
+        }
+        None
+    }
+
     fn try_set_config_file(&mut self) {
         let file_name = self.file.name();
         for neighbour in self.file.get_neighbours_or_contents() {
@@ -134,9 +148,21 @@ pub fn load_directory() -> ClixRepo {
 }
 
 fn create_command(dir: &ClixDirectory) -> Command {
+    info!("creating command");
     let mut command = Command::new(dir.get_command_name());
     for file in &dir.files {
-        command = command.subcommand(Command::new(file.get_file_name()));
+        let mut subcommand = Command::new(file.get_file_name());
+        if let Some(config) = file.get_config() {
+            info!("config file found");
+            if let Some(arguments) = config.arguments {
+                info!("argument config present");
+                for arg in arguments {
+                    info!("adding argument: {arg:?}");
+                    subcommand = subcommand.arg(Arg::new(arg.name).required(arg.required));
+                }
+            }
+        }
+        command = command.subcommand(subcommand);
     }
     for sub_dir in &dir.sub_dirs {
         command = command.subcommand(create_command(sub_dir));

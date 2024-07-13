@@ -1,2 +1,2 @@
 command_name = "commit"
-arguments = ["MESSAGE"]
+arguments = [{ name = "MESSAGE", required = true }]
