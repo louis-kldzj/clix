@@ -64,6 +64,9 @@ fn create_command(dir: &ClixDirectory) -> Command {
     info!("creating command");
     let mut command = Command::new(dir.get_command_name());
     for file in dir.files() {
+        if file.get_file_name().starts_with('.') {
+            continue;
+        }
         let mut subcommand = Command::new(file.get_file_name());
         if let Some(config) = file.get_config() {
             info!("config file found");

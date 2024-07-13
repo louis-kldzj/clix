@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::process::Command;
 
 use log::{error, info, warn};
@@ -15,9 +14,13 @@ pub fn execute_command(command: ClixCommand) {
     }
 }
 
-fn execute_bash_script(file: ClixCommand) {
-    let file = file.file().file_path().path();
+fn execute_bash_script(clix_command: ClixCommand) {
+    let file = clix_command.file().file_path().path();
     let mut command = Command::new("bash");
+
+    let args = clix_command.command();
+
+    warn!("are there any args? {args:?}");
 
     command.arg(file);
 
