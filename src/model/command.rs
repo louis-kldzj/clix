@@ -3,13 +3,29 @@ use log::{debug, info};
 
 use super::repo::{ClixDirectory, ClixFile, ClixRepo};
 
-pub fn clap_file(repo: &ClixRepo) -> Option<ClixFile> {
+pub fn clap_file(repo: &ClixRepo) -> Option<ClixCommand> {
     debug!("clapping file");
     let matches = clap(repo).get_matches();
     walk_repo(&matches, repo.root_dir())
 }
 
-fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFile> {
+#[derive(Debug)]
+pub struct ClixCommand {
+    file: ClixFile,
+    command: ArgMatches,
+}
+
+impl ClixCommand {
+    pub fn file(&self) -> &ClixFile {
+        &self.file
+    }
+
+    pub fn command(&self) -> &ArgMatches {
+        &self.command
+    }
+}
+
+fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixCommand> {
     let command_name = arg_match.subcommand_name().unwrap();
     let dir_name = clix_dir.get_command_name();
     debug!("walking repo for {command_name} in {dir_name}");
@@ -21,6 +37,7 @@ fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFil
             }
         }
     }
+
     debug!("should be on last command...");
     for file in clix_dir.files() {
         debug!("checking file: {file:?}");
@@ -29,7 +46,10 @@ fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFil
                 .subcommand_name()
                 .expect("could not get subcommand name")
         {
-            return Some(file.clone());
+            return Some(ClixCommand {
+                file: file.clone(),
+                command: arg_match.clone(),
+            });
         }
     }
 
