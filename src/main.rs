@@ -6,6 +6,7 @@ use log4rs::{
     encode::pattern::PatternEncoder,
     Config,
 };
+use model::command::clap_file;
 
 mod config;
 mod execution;
@@ -13,12 +14,12 @@ mod model;
 
 fn main() {
     configure_logging();
-    let repo = model::load_directory();
-    let file = repo.clap_file();
+    let repo = model::repo::load_directory();
+    let file = clap_file(&repo);
     match file {
         Some(clix_file) => {
             info!("we have a file! {clix_file:?}");
-            execute_command(clix_file.file.path().clone());
+            execute_command(clix_file.file_path().path().clone());
         }
         None => warn!("we don't have a file!"),
     }

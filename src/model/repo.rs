@@ -1,11 +1,7 @@
 use std::ffi::OsStr;
 use std::path::*;
 
-use clap::Arg;
-use clap::ArgMatches;
-use clap::Command;
 use log::debug;
-use log::info;
 
 use crate::config::get_command_configuration;
 use crate::config::CommandConfiguration;
@@ -64,7 +60,7 @@ impl ClixPath {
 
 #[derive(Debug, Clone)]
 pub struct ClixFile {
-    pub(super) file: ClixPath,
+    file: ClixPath,
     config_file: Option<ClixPath>,
 }
 
@@ -76,6 +72,10 @@ impl ClixFile {
         };
         clix.try_set_config_file();
         clix
+    }
+
+    pub fn file_path(&self) -> &ClixPath {
+        &self.file
     }
 
     pub fn get_file_name(&self) -> String {
@@ -108,14 +108,22 @@ impl ClixFile {
 
 #[derive(Debug)]
 pub struct ClixDirectory {
-    pub(super) dir: ClixPath,
-    pub(super) files: Vec<ClixFile>,
-    pub(super) sub_dirs: Vec<ClixDirectory>,
+    dir: ClixPath,
+    files: Vec<ClixFile>,
+    sub_dirs: Vec<ClixDirectory>,
 }
 
 impl ClixDirectory {
     pub fn get_command_name(&self) -> String {
         self.dir.name()
+    }
+
+    pub fn files(&self) -> &Vec<ClixFile> {
+        &self.files
+    }
+
+    pub fn sub_dirs(&self) -> &Vec<ClixDirectory> {
+        &self.sub_dirs
     }
 }
 
@@ -144,30 +152,7 @@ pub fn load_directory() -> ClixRepo {
     const DIR: &str = "/home/locuris/code/clix/test-repo/engage";
     let path = PathBuf::from(DIR);
     let root = read_directory(ClixPath::new(path));
-    ClixRepo::new(root)
-}
-
-fn create_command(dir: &ClixDirectory) -> Command {
-    info!("creating command");
-    let mut command = Command::new(dir.get_command_name());
-    for file in &dir.files {
-        let mut subcommand = Command::new(file.get_file_name());
-        if let Some(config) = file.get_config() {
-            info!("config file found");
-            if let Some(arguments) = config.arguments {
-                info!("argument config present");
-                for arg in arguments {
-                    info!("adding argument: {arg:?}");
-                    subcommand = subcommand.arg(Arg::new(arg.name).required(arg.required));
-                }
-            }
-        }
-        command = command.subcommand(subcommand);
-    }
-    for sub_dir in &dir.sub_dirs {
-        command = command.subcommand(create_command(sub_dir));
-    }
-    command
+    ClixRepo { root }
 }
 
 #[derive(Debug)]
@@ -176,44 +161,7 @@ pub struct ClixRepo {
 }
 
 impl ClixRepo {
-    pub(super) fn new(root: ClixDirectory) -> Self {
-        ClixRepo { root }
-    }
-
-    pub fn clap(&self) -> Command {
-        create_command(&self.root)
-    }
-
-    pub fn clap_file(&self) -> Option<ClixFile> {
-        debug!("clapping file");
-        let matches = self.clap().get_matches();
-        Self::walk_repo(&matches, &self.root)
-    }
-
-    fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixFile> {
-        let command_name = arg_match.subcommand_name().unwrap();
-        let dir_name = clix_dir.get_command_name();
-        debug!("walking repo for {command_name} in {dir_name}");
-        if let Some((cmd_name, next_match)) = arg_match.subcommand() {
-            debug!("got subcommand {cmd_name}");
-            for dir in &clix_dir.sub_dirs {
-                if dir.get_command_name() == cmd_name {
-                    return Self::walk_repo(next_match, dir);
-                }
-            }
-        }
-        debug!("should be on last command...");
-        for file in &clix_dir.files {
-            debug!("checking file: {file:?}");
-            if file.get_file_name()
-                == arg_match
-                    .subcommand_name()
-                    .expect("could not get subcommand name")
-            {
-                return Some(file.clone());
-            }
-        }
-
-        None
+    pub(super) fn root_dir(&self) -> &ClixDirectory {
+        &self.root
     }
 }

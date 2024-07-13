@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, path::PathBuf};
 
-use log::{debug, error, info};
+use log::{debug, error};
 use serde::Deserialize;
 
 use anyhow::{Error, Result};
