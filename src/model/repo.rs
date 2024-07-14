@@ -150,7 +150,7 @@ fn read_directory(path: ClixPath) -> ClixDirectory {
     }
 }
 
-pub fn load_directory() -> ClixRepo {
+pub fn load_directory(path: PathBuf) -> ClixRepo {
     let cd = env::current_dir().expect("could not get current directory");
 
     const DIR: &str = "/test-repo/engage";
