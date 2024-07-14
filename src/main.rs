@@ -6,16 +6,15 @@ use log4rs::{
     encode::pattern::PatternEncoder,
     Config,
 };
-use model::command::clap_file;
+use model::command::clap_file_from_stdin;
 
-mod config;
 mod execution;
 mod model;
 
 fn main() {
     configure_logging();
     let repo = model::repo::load_directory();
-    let file = clap_file(&repo);
+    let file = clap_file_from_stdin(&repo);
     match file {
         Some(clix_file) => {
             info!("we have a file! {clix_file:?}");
@@ -39,4 +38,37 @@ fn configure_logging() {
         .unwrap();
 
     log4rs::init_config(config).unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::model::{self, command::clap_file_from_str};
+    use core::panic;
+
+    #[test]
+    pub fn test_help_command() {
+        let repo = model::repo::load_directory();
+
+        let input = ["clix", "help"].to_vec();
+        let command_result = clap_file_from_str(&repo, input);
+        assert!(command_result.is_none())
+    }
+
+    #[test]
+    pub fn test_bosh() {
+        let repo = model::repo::load_directory();
+
+        let input = ["clix", "test", "bosh"].to_vec();
+        let command_result = clap_file_from_str(&repo, input);
+        assert!(command_result.is_some())
+    }
+
+    #[test]
+    pub fn test_commit_help() {
+        let repo = model::repo::load_directory();
+
+        let input = ["clix", "git", "commit", "--help"].to_vec();
+        let command_result = clap_file_from_str(&repo, input);
+        assert!(command_result.is_none())
+    }
 }
