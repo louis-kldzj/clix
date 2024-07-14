@@ -28,6 +28,7 @@ impl ClixCommand {
 fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixCommand> {
     let command_name = arg_match.subcommand_name().unwrap();
     let dir_name = clix_dir.get_command_name();
+    let mut nxt_match = arg_match;
     debug!("walking repo for {command_name} in {dir_name}");
     if let Some((cmd_name, next_match)) = arg_match.subcommand() {
         debug!("got subcommand {cmd_name}");
@@ -36,6 +37,7 @@ fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixCom
                 return walk_repo(next_match, dir);
             }
         }
+        nxt_match = next_match;
     }
 
     debug!("should be on last command...");
@@ -48,7 +50,7 @@ fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixCom
         {
             return Some(ClixCommand {
                 file: file.clone(),
-                command: arg_match.clone(),
+                command: nxt_match.clone(),
             });
         }
     }

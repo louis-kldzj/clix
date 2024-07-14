@@ -4,6 +4,8 @@
 
 MESSAGE=$1
 
+echo "message: $1"
+
 echo "executing: git add *"
 git add *
 
