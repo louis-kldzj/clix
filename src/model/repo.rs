@@ -1,9 +1,7 @@
-use std::env;
 use std::ffi::OsStr;
 use std::path::*;
 
 use log::debug;
-use log::info;
 
 use crate::model::config::get_command_configuration;
 use crate::model::config::CommandConfiguration;
