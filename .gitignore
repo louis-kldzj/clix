@@ -5,3 +5,4 @@ exCLInce
 
 /target
 debug.log
+Cargo.lock

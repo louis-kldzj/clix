@@ -1,0 +1,2 @@
+command_name = "commit"
+arguments = [{ name = "MESSAGE", required = true }]
