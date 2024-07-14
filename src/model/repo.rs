@@ -1,10 +1,12 @@
+use std::env;
 use std::ffi::OsStr;
 use std::path::*;
 
 use log::debug;
+use log::info;
 
-use crate::config::get_command_configuration;
-use crate::config::CommandConfiguration;
+use crate::model::config::get_command_configuration;
+use crate::model::config::CommandConfiguration;
 
 // PathBuf wrapper with helper functions
 #[derive(Debug, Clone)]
@@ -148,9 +150,7 @@ fn read_directory(path: ClixPath) -> ClixDirectory {
     }
 }
 
-pub fn load_directory() -> ClixRepo {
-    const DIR: &str = "/home/locuris/code/clix/test-repo/engage";
-    let path = PathBuf::from(DIR);
+pub fn load_directory(path: PathBuf) -> ClixRepo {
     let root = read_directory(ClixPath::new(path));
     ClixRepo { root }
 }
