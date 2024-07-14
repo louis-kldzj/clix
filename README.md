@@ -14,7 +14,7 @@ Configurable extendable CLI tool
 
 #### TODO
 
-- Command configuration - allow defining of more complex commands with options and arguments
+- ~~Command configuration - allow defining of more complex commands with options and arguments~~
 - Different command file types - currently only supports bash
-- AppConfig - allow the setting of script repository - currently hard-coded to my local test repository
+- ~~AppConfig - allow the setting of script repository - currently hard-coded to my local test repository~~
 - Remote repository - allow for the setting of a remote git repository
