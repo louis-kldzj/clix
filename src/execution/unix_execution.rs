@@ -4,6 +4,8 @@ use log::{debug, error, info, warn};
 
 use crate::model::command::ClixCommand;
 
+use super::{handle_arguments, run_command_and_print_output};
+
 pub(super) fn execute_bash_script(clix_command: ClixCommand) {
     let path = clix_command.file().file_path().path();
     let mut command = Command::new("bash");
@@ -13,41 +15,10 @@ pub(super) fn execute_bash_script(clix_command: ClixCommand) {
     command.arg(path);
 
     if let Some(config) = clix_command.file().get_config() {
-        if let Some(arguments) = config.arguments {
-            for arg_entry in arguments {
-                debug!("attempting to get argument from command line: {arg_entry:?}");
-                if args.contains_id(arg_entry.name.as_str()) {
-                    warn!("should have it!");
-                }
-                if let Some(arg) = args.get_one::<String>(arg_entry.name.as_str()) {
-                    command.arg(arg);
-                } else {
-                    debug!("could not retrieve arguments.");
-                    if arg_entry.required {
-                        error!("required argument not provided. panicking!");
-                        error!("command: {clix_command:?}");
-                        panic!("argument {:?} not provided", arg_entry.name)
-                    }
-                }
-            }
-        }
+        command = handle_arguments(args, command, config);
     }
 
-    info!("executing command: {command:?}");
+    info!("executing bash command: {command:?}");
 
-    match command.output() {
-        Ok(output) => {
-            info!("that's how you run a command! {output:?}");
-
-            let out =
-                String::from_utf8(output.stdout).expect("could not read command output as string");
-
-            let lines = out.split("\\n");
-
-            for line in lines {
-                println!("{line}");
-            }
-        }
-        Err(error) => error!("that's not how you run a command. {error:?}"),
-    }
+    run_command_and_print_output(command);
 }

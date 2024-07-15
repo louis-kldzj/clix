@@ -1,3 +1,9 @@
+#[cfg(target_os = "linux")]
+const SUPPORTED_FILE_TYPES: [&str; 1] = ["sh"];
+
+#[cfg(target_os = "windows")]
+const SUPPORTED_FILE_TYPES: [&str; 1] = ["ps1"];
+
 #[cfg(test)]
 #[cfg(target_os = "windows")]
 mod tests {
