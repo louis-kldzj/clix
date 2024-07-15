@@ -2,6 +2,7 @@ use std::process::Command;
 
 use clap::ArgMatches;
 use log::{debug, error, info};
+use platform::LinuxFileTypes;
 
 use crate::model::{command::ClixCommand, config::CommandConfiguration};
 
@@ -59,16 +60,61 @@ fn run_command_and_print_output(mut command: Command) {
     }
 }
 
+trait FileTypeSpecifier {
+    fn from_extension(extension: &str) -> CommandFileTypes;
+}
+
+enum CommandFileTypes {
+    #[cfg(target_os = "linux")]
+    Linux(platform::LinuxFileTypes),
+    #[cfg(target_os = "windows")]
+    Windows(platform::WindowsFileTypes),
+    Python,
+    Unhandled(String),
+}
+
+impl FileTypeSpecifier for CommandFileTypes {
+    fn from_extension(extension: &str) -> Self {
+        match extension {
+            "py" => Self::Python,
+            unhandled => {
+                #[cfg(target_os = "linux")]
+                return LinuxFileTypes::from_extension(unhandled);
+                #[cfg(target_os = "windows")]
+                return WindowsFileTypes::from_extension(unhandled);
+            }
+        }
+    }
+}
+
 #[cfg(target_os = "linux")]
 mod platform {
 
-    use super::unix_execution;
+    use log::warn;
+
+    use crate::model::command::ClixCommand;
+
+    use super::{unix_execution, CommandFileTypes, FileTypeSpecifier};
+
     pub fn execute_os_command(command: ClixCommand) {
         let file = command.file();
 
         match file.get_file_extension().as_str() {
             "sh" => unix_execution::execute_bash_script(command),
             _ => warn!("unhandled file type on linux: {file:?}"),
+        }
+    }
+
+    pub enum LinuxFileTypes {
+        Bash,
+    }
+
+    impl FileTypeSpecifier for LinuxFileTypes {
+        fn from_extension(extension: &str) -> CommandFileTypes {
+            match extension {
+                "sh" => CommandFileTypes::Linux(Self::Bash),
+                unhandled => CommandFileTypes::Unhandled(unhandled.to_string()),
+            }
         }
     }
 }
@@ -89,5 +135,9 @@ mod platform {
             "ps1" => windows_execution::execute_powershell_script(command),
             _ => warn!("unhandled file type on windows: {file:?}"),
         }
+    }
+
+    pub enum WindowsFileTypes {
+        Powershell,
     }
 }
