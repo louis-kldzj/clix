@@ -70,6 +70,7 @@ fn default_to_test_repo_path() -> PathBuf {
 }
 
 #[cfg(test)]
+#[cfg(target_os = "linux")]
 mod tests {
     use crate::{
         get_repo_path,

@@ -1,21 +1,10 @@
-use core::panic;
 use std::process::Command;
 
 use log::{debug, error, info, warn};
 
 use crate::model::command::ClixCommand;
 
-pub fn execute_command(command: ClixCommand) {
-    let file = command.file();
-    if let Some(extension) = file.file_path().path().extension() {
-        match extension.to_str().expect("could not convert OSstr to str") {
-            "sh" => execute_bash_script(command),
-            _ => warn!("unhandled file type: {file:?}"),
-        }
-    }
-}
-
-fn execute_bash_script(clix_command: ClixCommand) {
+pub(super) fn execute_bash_script(clix_command: ClixCommand) {
     let path = clix_command.file().file_path().path();
     let mut command = Command::new("bash");
 
