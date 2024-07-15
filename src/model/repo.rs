@@ -33,6 +33,10 @@ impl ClixPath {
         }))
     }
 
+    pub fn extension(&self) -> String {
+        Self::convert_os_string(self.path.extension().expect("could not get extension")).to_string()
+    }
+
     pub fn get_neighbours_or_contents(&self) -> Vec<PathBuf> {
         if self.is_file() {
             self.path
@@ -80,6 +84,10 @@ impl ClixFile {
 
     pub fn get_file_name(&self) -> String {
         self.file.name()
+    }
+
+    pub fn get_file_extension(&self) -> String {
+        self.file.extension()
     }
 
     pub fn get_config(&self) -> Option<CommandConfiguration> {

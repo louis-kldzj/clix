@@ -24,7 +24,7 @@ pub fn get_command_configuration(file: PathBuf) -> Result<CommandConfiguration> 
         config_file.read_to_string(&mut config_text)?;
         let config: CommandConfiguration = toml::from_str(config_text.as_str())
             .expect("could not deserialize config file: {file:?}");
-        debug!("deserialized config file: {config:?}");
+        debug!("deserialized config file: {:?}", config.command_name);
         Ok(config)
     } else {
         error!("could not open config file: {file:?}");
