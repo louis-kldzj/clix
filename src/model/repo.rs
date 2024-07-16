@@ -2,7 +2,11 @@ use std::ffi::OsStr;
 use std::path::*;
 
 use log::debug;
+use log::error;
+use log::warn;
 
+use crate::execution::CommandFileType;
+use crate::execution::FileTypeSpecifier;
 use crate::model::config::get_command_configuration;
 use crate::model::config::CommandConfiguration;
 
@@ -37,6 +41,14 @@ impl ClixPath {
         Self::convert_os_string(self.path.extension().expect("could not get extension")).to_string()
     }
 
+    pub fn file_type(&self) -> Option<CommandFileType> {
+        if self.is_file() {
+            Some(CommandFileType::from_extension(self.extension().as_str()))
+        } else {
+            None
+        }
+    }
+
     pub fn get_neighbours_or_contents(&self) -> Vec<PathBuf> {
         if self.is_file() {
             self.path
@@ -66,13 +78,18 @@ impl ClixPath {
 pub struct ClixFile {
     file: ClixPath,
     config_file: Option<ClixPath>,
+    file_type: CommandFileType,
 }
 
 impl ClixFile {
     pub fn new(file: ClixPath) -> Self {
+        let file_type = file
+            .file_type()
+            .expect("by this point we should have a file type");
         let mut clix = ClixFile {
             file,
             config_file: None,
+            file_type,
         };
         clix.try_set_config_file();
         clix
@@ -143,7 +160,16 @@ fn read_directory(path: ClixPath) -> ClixDirectory {
     path.get_neighbours_or_contents().iter().for_each(|entry| {
         let sub_path = ClixPath::new(entry.clone());
         if sub_path.is_file() {
-            files.push(ClixFile::new(sub_path));
+            if let Some(file_type) = sub_path.file_type() {
+                match file_type {
+                    CommandFileType::Unhandled(unhandled) => {
+                        warn!("unhandled file type: {unhandled}")
+                    }
+                    _ => files.push(ClixFile::new(sub_path)),
+                }
+            } else {
+                error!("file type not determined for file: {sub_path:?}");
+            }
         } else {
             directories.push(read_directory(sub_path))
         }

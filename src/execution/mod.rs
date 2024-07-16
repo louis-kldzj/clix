@@ -2,11 +2,9 @@ use std::process::Command;
 
 use clap::ArgMatches;
 use log::{debug, error, info};
-use platform::LinuxFileTypes;
 
 use crate::model::{command::ClixCommand, config::CommandConfiguration};
 
-mod system_info;
 mod unix_execution;
 mod windows_execution;
 
@@ -60,32 +58,32 @@ fn run_command_and_print_output(mut command: Command) {
     }
 }
 
-trait FileTypeSpecifier {
-    fn from_extension(extension: &str) -> CommandFileTypes;
+pub trait FileTypeSpecifier {
+    fn from_extension(extension: &str) -> CommandFileType;
 }
 
-enum CommandFileTypes {
+#[derive(Clone, Debug)]
+pub enum CommandFileType {
     #[cfg(target_os = "linux")]
     Linux(platform::LinuxFileTypes),
     #[cfg(target_os = "windows")]
-    Windows(platform::WindowsFileTypes),
+    Windows(platform::PlatformSpecificFileType),
     Python,
     Unhandled(String),
 }
 
-impl FileTypeSpecifier for CommandFileTypes {
+impl FileTypeSpecifier for CommandFileType {
     fn from_extension(extension: &str) -> Self {
         match extension {
             "py" => Self::Python,
-            unhandled => {
-                #[cfg(target_os = "linux")]
-                return LinuxFileTypes::from_extension(unhandled);
-                #[cfg(target_os = "windows")]
-                return WindowsFileTypes::from_extension(unhandled);
-            }
+            unhandled => platform::PlatformSpecificFileType::from_extension(unhandled),
         }
     }
 }
+
+//NOTE: technically we can run bash on windows with WSL and it appears it handles it fine without
+//extra logic, however, I will not support bash on windows right now as it acts on a sepereate file
+//system
 
 #[cfg(target_os = "linux")]
 mod platform {
@@ -94,7 +92,7 @@ mod platform {
 
     use crate::model::command::ClixCommand;
 
-    use super::{unix_execution, CommandFileTypes, FileTypeSpecifier};
+    use super::{unix_execution, CommandFileType, FileTypeSpecifier};
 
     pub fn execute_os_command(command: ClixCommand) {
         let file = command.file();
@@ -105,28 +103,28 @@ mod platform {
         }
     }
 
-    pub enum LinuxFileTypes {
+    pub enum PlatformSpecificFileType {
         Bash,
     }
 
-    impl FileTypeSpecifier for LinuxFileTypes {
-        fn from_extension(extension: &str) -> CommandFileTypes {
+    impl FileTypeSpecifier for PlatformSpecificFileType {
+        fn from_extension(extension: &str) -> CommandFileType {
             match extension {
-                "sh" => CommandFileTypes::Linux(Self::Bash),
-                unhandled => CommandFileTypes::Unhandled(unhandled.to_string()),
+                "sh" => CommandFileType::Linux(Self::Bash),
+                unhandled => CommandFileType::Unhandled(unhandled.to_string()),
             }
         }
     }
 }
 
 #[cfg(target_os = "windows")]
-mod platform {
+pub(crate) mod platform {
 
     use log::warn;
 
     use crate::model::command::ClixCommand;
 
-    use super::windows_execution;
+    use super::{windows_execution, CommandFileType, FileTypeSpecifier};
 
     pub fn execute_os_command(command: ClixCommand) {
         let file = command.file();
@@ -137,7 +135,17 @@ mod platform {
         }
     }
 
-    pub enum WindowsFileTypes {
+    #[derive(Clone, Debug)]
+    pub enum PlatformSpecificFileType {
         Powershell,
+    }
+
+    impl FileTypeSpecifier for PlatformSpecificFileType {
+        fn from_extension(extension: &str) -> super::CommandFileType {
+            match extension {
+                "ps1" => CommandFileType::Windows(Self::Powershell),
+                unhandled => CommandFileType::Unhandled(unhandled.to_string()),
+            }
+        }
     }
 }
