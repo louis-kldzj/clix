@@ -65,7 +65,7 @@ pub trait FileTypeSpecifier {
 #[derive(Clone, Debug)]
 pub enum CommandFileType {
     #[cfg(target_os = "linux")]
-    Linux(platform::LinuxFileTypes),
+    Linux(platform::PlatformSpecificFileType),
     #[cfg(target_os = "windows")]
     Windows(platform::PlatformSpecificFileType),
     Python,
@@ -103,6 +103,7 @@ mod platform {
         }
     }
 
+    #[derive(Clone, Debug)]
     pub enum PlatformSpecificFileType {
         Bash,
     }

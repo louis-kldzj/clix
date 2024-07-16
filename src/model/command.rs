@@ -1,7 +1,7 @@
 use clap::{Arg, ArgMatches, Command};
 use log::{debug, info};
 
-use super::repo::{ClixDirectory, ClixFile, ClixRepo};
+use super::repo::{dir::ClixDirectory, file::ClixFile, ClixRepo};
 
 pub fn clap_file_from_stdin(repo: &ClixRepo) -> Option<ClixCommand> {
     debug!("clapping file");
