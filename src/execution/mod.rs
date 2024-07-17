@@ -5,11 +5,22 @@ use log::{debug, error, info};
 
 use crate::model::{command::ClixCommand, config::CommandConfiguration};
 
-mod unix_execution;
-mod windows_execution;
+use self::python::execute_python_command;
+
+mod python;
+#[cfg(target_os = "linux")]
+mod unix;
+#[cfg(target_os = "windows")]
+mod windows;
 
 pub fn execute_command(command: ClixCommand) {
-    platform::execute_os_command(command)
+    match command.file().file_type() {
+        CommandFileType::Python => execute_python_command(command),
+        CommandFileType::PlatformSpecific(_) => platform::execute_os_command(command),
+        CommandFileType::Unhandled(unhandled) => {
+            panic!("somehow an unhandled file type got this far. {unhandled}")
+        }
+    }
 }
 
 fn handle_arguments(
@@ -64,10 +75,7 @@ pub trait FileTypeSpecifier {
 
 #[derive(Clone, Debug)]
 pub enum CommandFileType {
-    #[cfg(target_os = "linux")]
-    Linux(platform::PlatformSpecificFileType),
-    #[cfg(target_os = "windows")]
-    Windows(platform::PlatformSpecificFileType),
+    PlatformSpecific(platform::PlatformSpecificFileType),
     Python,
     Unhandled(String),
 }
@@ -92,7 +100,7 @@ mod platform {
 
     use crate::model::command::ClixCommand;
 
-    use super::{unix_execution, CommandFileType, FileTypeSpecifier};
+    use super::{unix, CommandFileType, FileTypeSpecifier};
 
     pub fn execute_os_command(command: ClixCommand) {
         let file = command.file();
@@ -121,18 +129,22 @@ mod platform {
 #[cfg(target_os = "windows")]
 pub(crate) mod platform {
 
-    use log::warn;
+    use log::error;
 
     use crate::model::command::ClixCommand;
 
-    use super::{windows_execution, CommandFileType, FileTypeSpecifier};
+    use super::{windows, CommandFileType, FileTypeSpecifier};
 
     pub fn execute_os_command(command: ClixCommand) {
         let file = command.file();
 
-        match file.get_file_extension().as_str() {
-            "ps1" => windows_execution::execute_powershell_script(command),
-            _ => warn!("unhandled file type on windows: {file:?}"),
+        if let CommandFileType::PlatformSpecific(platform_file_type) = file.file_type() {
+            match platform_file_type {
+                PlatformSpecificFileType::Powershell => windows::execute_powershell_script(command),
+            }
+        } else {
+            error!("attempting to run non OS locked command as OS command. About to panic.");
+            panic!("This should not have happened. Check logs.")
         }
     }
 
@@ -144,7 +156,7 @@ pub(crate) mod platform {
     impl FileTypeSpecifier for PlatformSpecificFileType {
         fn from_extension(extension: &str) -> super::CommandFileType {
             match extension {
-                "ps1" => CommandFileType::Windows(Self::Powershell),
+                "ps1" => CommandFileType::PlatformSpecific(Self::Powershell),
                 unhandled => CommandFileType::Unhandled(unhandled.to_string()),
             }
         }

@@ -18,3 +18,5 @@ Configurable extendable CLI tool
 - Different command file types - currently only supports bash
 - ~~AppConfig - allow the setting of script repository - currently hard-coded to my local test repository~~
 - Remote repository - allow for the setting of a remote git repository
+- Install script
+- Dependency management (e.g. is python installed?)

@@ -30,15 +30,15 @@ impl ClixFile {
         &self.file
     }
 
-    pub fn get_file_name(&self) -> String {
+    pub fn file_name(&self) -> String {
         self.file.name()
     }
 
-    pub fn get_file_extension(&self) -> String {
-        self.file.extension()
+    pub fn file_type(&self) -> &CommandFileType {
+        &self.file_type
     }
 
-    pub fn get_config(&self) -> Option<CommandConfiguration> {
+    pub fn try_get_config(&self) -> Option<CommandConfiguration> {
         if let Some(config_file) = &self.config_file {
             if let Ok(config) = get_command_configuration(config_file.path().clone()) {
                 return Some(config);

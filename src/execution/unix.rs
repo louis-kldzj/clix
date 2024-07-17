@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use log::{debug, error, info, warn};
+use log::info;
 
 use crate::model::command::ClixCommand;
 
@@ -14,7 +14,7 @@ pub(super) fn execute_bash_script(clix_command: ClixCommand) {
 
     command.arg(path);
 
-    if let Some(config) = clix_command.file().get_config() {
+    if let Some(config) = clix_command.file().try_get_config() {
         command = handle_arguments(args, command, config);
     }
 

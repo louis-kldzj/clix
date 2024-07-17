@@ -1,7 +1,7 @@
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, process::exit};
 
 use execution::execute_command;
-use log::{info, warn, LevelFilter};
+use log::{error, info, warn, LevelFilter};
 use log4rs::{
     append::file::FileAppender,
     config::{Appender, Root},
@@ -46,7 +46,16 @@ fn get_repo_path() -> PathBuf {
     info!("getting repo path");
     if let Ok(env_path) = env::var("CLIX_REPO_PATH") {
         info!("env var present, path is: {env_path}");
-        PathBuf::from(env_path)
+        let path = PathBuf::from(env_path.as_str());
+        if path.exists() {
+            path
+        } else {
+            error!("invalid path string in $env:CLIX_REPO_PATH");
+            println!("cannot read repoistory path.");
+            println!("please make sure that CLIX_REPO_PATH environment variable is set correctly.");
+            println!("it is currently set as: {:?}", env_path);
+            exit(1)
+        }
     } else {
         let path = default_to_test_repo_path();
         info!("no env var set, path is: {path:?}");
@@ -55,15 +64,10 @@ fn get_repo_path() -> PathBuf {
 }
 
 fn default_to_test_repo_path() -> PathBuf {
-    let cd = env::current_dir().expect("could not get current directory");
-
-    const DIR: &str = "/test-repo/engage";
-
-    let dir = format!("{cd:?}{DIR:?}").replace('\\', "").replace('"', "");
-
-    info!("target dir: {dir}");
-
-    let path = PathBuf::from(dir.as_str());
+    warn!("DEFAULTING TO TEST REPO!");
+    let mut path = env::current_dir().expect("could not get current directory");
+    path.push("test-repo");
+    path.push("engage");
 
     info!("repo path: {path:?}");
     path
