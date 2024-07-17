@@ -6,6 +6,12 @@ use crate::{
 use super::ClixPath;
 
 #[derive(Debug, Clone)]
+pub enum FileType {
+    Command(CommandFileType),
+    Config,
+}
+
+#[derive(Debug, Clone)]
 pub struct ClixFile {
     file: ClixPath,
     config_file: Option<ClixPath>,

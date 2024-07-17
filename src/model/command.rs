@@ -1,6 +1,8 @@
 use clap::{Arg, ArgMatches, Command};
 use log::{debug, info};
 
+use crate::model::repo::dir::DirectoryType;
+
 use super::repo::{dir::ClixDirectory, file::ClixFile, ClixRepo};
 
 pub fn clap_file_from_stdin(repo: &ClixRepo) -> Option<ClixCommand> {
@@ -42,14 +44,15 @@ fn walk_repo(arg_match: &ArgMatches, clix_dir: &ClixDirectory) -> Option<ClixCom
     if let Some((cmd_name, next_match)) = arg_match.subcommand() {
         debug!("got subcommand {cmd_name}");
         for dir in clix_dir.sub_dirs() {
-            if dir.get_command_name() == cmd_name {
-                return walk_repo(next_match, dir);
+            if let DirectoryType::Command = dir.dir_type() {
+                if dir.get_command_name() == cmd_name {
+                    return walk_repo(next_match, dir);
+                }
             }
         }
         nxt_match = next_match;
     }
 
-    debug!("should be on last command...");
     for file in clix_dir.files() {
         debug!("checking file: {file:?}");
         if file.file_name()
@@ -92,7 +95,9 @@ fn create_command(dir: &ClixDirectory) -> Command {
         command = command.subcommand(subcommand);
     }
     for sub_dir in dir.sub_dirs() {
-        command = command.subcommand(create_command(sub_dir));
+        if let DirectoryType::Command = sub_dir.dir_type() {
+            command = command.subcommand(create_command(sub_dir));
+        }
     }
     command
 }
