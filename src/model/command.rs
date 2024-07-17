@@ -1,7 +1,7 @@
 use clap::{Arg, ArgMatches, Command};
 use log::{debug, info};
 
-use super::repo::{ClixDirectory, ClixFile, ClixRepo};
+use super::repo::{dir::ClixDirectory, file::ClixFile, ClixRepo};
 
 pub fn clap_file_from_stdin(repo: &ClixRepo) -> Option<ClixCommand> {
     debug!("clapping file");
@@ -10,7 +10,6 @@ pub fn clap_file_from_stdin(repo: &ClixRepo) -> Option<ClixCommand> {
 }
 
 #[cfg(test)]
-#[cfg(target_os = "linux")]
 pub fn clap_file_from_str(repo: &ClixRepo, input: Vec<&str>) -> Option<ClixCommand> {
     if let Ok(matches) = clap(repo).try_get_matches_from(input) {
         walk_repo(&matches, repo.root_dir())
